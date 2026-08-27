@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>猫币 · 小橘</title>
+<style>
+:root{
+  --bg:#fff8ef;--card:#fff;--text:#342820;--muted:#9a8c81;
+  --orange:#ff9f1c;--red:#ff6655;--line:#efe2d6;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:linear-gradient(180deg,#fff8ef,#fffdfa);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+.app{width:min(100%,520px);margin:0 auto;padding:18px 16px 38px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.title{font-size:19px;font-weight:850}
+.hero{
+  background:#fff;border-radius:28px;overflow:hidden;
+  box-shadow:0 12px 34px rgba(76,53,34,.08);
+  border:1px solid rgba(255,159,28,.12)
+}
+.bubble{
+  width:max-content;max-width:85%;margin:14px auto 0;padding:9px 13px;
+  border-radius:16px;background:#fff9f2;border:1px solid #f3e2d3;font-size:13px
+}
+.catStage{
+  width:100%;height:320px;display:grid;place-items:center;position:relative;
+  border:0;padding:12px;background:radial-gradient(circle at 50% 74%,#ffe9c8 0,#fff7eb 43%,#fff 76%);
+  cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent
+}
+.catStage::after{
+  content:"";position:absolute;width:48%;height:22px;left:26%;bottom:18px;
+  border-radius:50%;background:rgba(105,67,39,.13);filter:blur(8px)
+}
+.catImage{
+  width:100%;height:100%;object-fit:contain;position:relative;z-index:1;
+  filter:drop-shadow(0 10px 10px rgba(112,67,32,.12));user-select:none;-webkit-user-drag:none
+}
+.catImage.happy{animation:catHappy .85s cubic-bezier(.2,.8,.25,1)}
+.catImage.sad{animation:catSad 1.05s ease}
+.catImage.pet{animation:catPet .7s ease}
+.catImage.grin{animation:catGrin 1s cubic-bezier(.2,.8,.25,1)}
+.catImage.rewardSmall,.catImage.rewardBig{animation:catGrin 1s cubic-bezier(.2,.8,.25,1)}
+.catImage.attack{animation:catAttack .78s cubic-bezier(.2,.8,.25,1)}
+.catCaption{
+  position:absolute;z-index:3;left:50%;bottom:14px;transform:translateX(-50%) translateY(8px);
+  width:max-content;max-width:88%;padding:7px 13px;border-radius:999px;
+  background:rgba(55,45,39,.88);color:#fff;font-size:17px;font-weight:900;
+  letter-spacing:.5px;opacity:0;transition:.18s;pointer-events:none;
+  text-shadow:0 1px 2px rgba(0,0,0,.25);box-shadow:0 5px 15px rgba(70,45,28,.18)
+}
+.catCaption.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes catHappy{0%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(-18px) rotate(-2deg)}}
+@keyframes catSad{0%,100%{transform:translateY(0)}45%{transform:translateY(10px) scale(.98)}}
+@keyframes catPet{0%,100%{transform:rotate(0) scale(1)}45%{transform:rotate(-3deg) scale(1.025)}}
+@keyframes catGrin{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-12px) scale(1.035)}}
+@keyframes catAttack{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-12px) rotate(-2deg) scale(1.06)}55%{transform:translateX(15px) rotate(3deg) scale(1.08)}75%{transform:translateX(-6px) rotate(-1deg) scale(1.04)}}
+.balanceCard{text-align:center;padding:12px 18px 18px}
+.label{font-size:13px;color:var(--muted)}
+.balance{font-size:50px;font-weight:900;letter-spacing:-2px}
+.stats{font-size:12px;color:var(--muted);margin-top:5px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.btn{
+  min-height:68px;border:0;border-radius:20px;font-size:18px;font-weight:850;color:#fff
+}
+.add{background:linear-gradient(135deg,#ffad27,#ff9418)}
+.sub{background:linear-gradient(135deg,#ff7667,#ff5b49)}
+.panel{
+  margin-top:16px;background:#fff;border-radius:24px;padding:17px;
+  box-shadow:0 10px 28px rgba(89,60,38,.06)
+}
+.panel h3{margin:0 0 12px;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.cardbtn{
+  border:1px solid var(--line);background:#fffaf5;border-radius:18px;
+  padding:13px;text-align:left
+}
+.cardbtn b{display:block;margin-top:4px;font-size:14px}
+.cardbtn span{display:block;margin-top:3px;font-size:12px;color:#e98516;font-weight:800}
+.cardbtn.neg span{color:#d95c51}
+.hidden{display:none}
+.history .row{
+  display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;
+  padding:11px 0;border-bottom:1px solid var(--line)
+}
+.history .row:last-child{border-bottom:0}
+.icon{width:38px;height:38px;border-radius:12px;background:#fff7ee;display:grid;place-items:center}
+.name{font-size:14px;font-weight:700}
+.time{font-size:11px;color:var(--muted);margin-top:2px}
+.val{font-weight:850}.plus{color:#e98716}.minus{color:#d95c51}
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(46,33,25,.32);
+  padding:18px;align-items:flex-end;justify-content:center;z-index:50
+}
+.overlay.show{display:flex}
+.sheet{
+  width:min(100%,500px);background:#fff;border-radius:28px 28px 18px 18px;padding:20px
+}
+.sheet h2{margin:0;font-size:19px}
+.sheet p{font-size:13px;color:var(--muted)}
+.confirmValue{text-align:center;font-size:34px;font-weight:900;color:#d95c51;margin:14px 0}
+.confirmActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.confirmActions button{padding:14px;border:0;border-radius:16px;font-weight:850}
+.cancel{background:#f4f0ec;color:#62554c}.danger{background:#ff6755;color:#fff}
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(18px);
+  background:#372d27;color:white;padding:10px 15px;border-radius:999px;
+  opacity:0;transition:.2s;z-index:70
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.note{font-size:11px;color:var(--muted);text-align:center;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="title">🐾 猫币</div>
+    <div style="font-size:12px;color:#9a8c81">小橘陪你记录</div>
+  </div>
+
+  <section class="hero">
+    <div class="bubble" id="bubble">摸摸小橘，今天也要开心攒猫币</div>
+    <button class="catStage" id="catStage" aria-label="摸摸小橘">
+      <img class="catImage" id="catImage" src="./assets/cat-idle.png" alt="一只成熟的橘猫" draggable="false">
+      <span class="catCaption" id="catCaption"></span>
+    </button>
+    <div class="balanceCard">
+      <div class="label">当前猫币</div>
+      <div><span class="balance" id="balance">128</span> 🪙</div>
+      <div class="stats">总获得：<span id="earned">146</span>　总消耗：<span id="spent">18</span></div>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="btn add" id="addBtn">🪙 给猫币</button>
+    <button class="btn sub" id="subBtn">😾 扣猫币</button>
+  </div>
+
+  <section class="panel" id="rewardPanel">
+    <h3>⭐ 快速奖励</h3>
+    <div class="grid" id="rewards"></div>
+  </section>
+
+  <section class="panel hidden" id="reasonPanel">
+    <h3>为什么要扣猫币？</h3>
+    <div class="grid" id="reasons"></div>
+  </section>
+
+  <section class="panel history">
+    <h3>🐾 猫币记录</h3>
+    <div id="history"></div>
+  </section>
+
+  <div class="note">点一下小橘，它会回应你。不同猫币操作会切换对应表情。</div>
+</div>
+
+<div class="overlay" id="confirm">
+  <div class="sheet">
+    <h2>真的要扣猫币吗？</h2>
+    <p id="confirmReason"></p>
+    <div class="confirmValue" id="confirmValue">-5 🪙</div>
+    <div class="confirmActions">
+      <button class="cancel" id="cancel">再想想</button>
+      <button class="danger" id="ok">确认扣除</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const rewards=[
+  {emoji:"😸",name:"今天很开心",value:1},
+  {emoji:"🌟",name:"表现超棒",value:2},
+  {emoji:"🫶",name:"贴心时刻",value:5},
+  {emoji:"🎉",name:"特别开心",value:10}
+];
+const reasons=[
+  {emoji:"😿",name:"惹猫猫生气",value:-5},
+  {emoji:"😾",name:"说话不算数",value:-5},
+  {emoji:"🗑️",name:"乱丢东西",value:-3},
+  {emoji:"🙀",name:"不乖不听话",value:-3}
+];
+let state={balance:128,earned:146,spent:18,history:[]};
+let pending=null;
+const $=s=>document.querySelector(s);
+
+function toast(t){
+  const x=$("#toast");x.textContent=t;x.classList.add("show");
+  clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),1400);
+}
+function render(){
+  $("#balance").textContent=state.balance;
+  $("#earned").textContent=state.earned;
+  $("#spent").textContent=state.spent;
+  const h=$("#history");
+  h.innerHTML=state.history.length?state.history.slice().reverse().map(e=>`
+    <div class="row">
+      <div class="icon">${e.emoji}</div>
+      <div><div class="name">${e.name}</div><div class="time">${new Date(e.time).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}</div></div>
+      <div class="val ${e.value>0?"plus":"minus"}">${e.value>0?"+":""}${e.value}</div>
+    </div>`).join(""):'<div style="color:#9a8c81;font-size:13px;padding:8px 0">还没有记录</div>';
+}
+
+/* ---------- IMAGE-BASED ORANGE CAT ---------- */
+const catImage=$("#catImage");
+const catSources={
+  idle:"./assets/cat-idle.png",
+  happy:"./assets/cat-happy.png",
+  rewardSmall:"./assets/cat-reward-small.png",
+  rewardBig:"./assets/cat-reward-big.png",
+  sad:"./assets/cat-sad.png",
+  attack:"./assets/cat-scratch.png"
+};
+Object.values(catSources).forEach(src=>{const img=new Image();img.src=src;});
+const catCaption=$("#catCaption");
+let catResetTimer=null;
+function setMode(mode,caption=""){
+  const visual=mode==="pet"?"happy":mode;
+  clearTimeout(catResetTimer);
+  catImage.className="catImage";
+  void catImage.offsetWidth;
+  catImage.src=catSources[visual];
+  catImage.classList.add(mode==="pet"?"pet":visual);
+  catCaption.textContent=caption;
+  catCaption.classList.toggle("show",Boolean(caption));
+  if(mode==="attack")catResetTimer=setTimeout(()=>setMode("sad"),850);
+  else if(mode!=="idle")catResetTimer=setTimeout(()=>setMode("idle"),mode==="sad"?1500:1350);
+}
+$("#catStage").addEventListener("click",()=>{
+  $("#bubble").textContent="小橘抬起爪子，算是回应你了。";
+  setMode("pet");
+});
+
+function addCoins(e){
+  state.balance+=e.value;state.earned+=e.value;state.history.push({...e,time:Date.now()});
+  const small=e.value<=2;
+  const caption=small?"咪想要，咪得到":"塞牙缝都不够";
+  $("#bubble").textContent=`${e.emoji} ${e.name}，奖励 ${e.value} 猫币！`;
+  setMode(small?"rewardSmall":"rewardBig",caption);render();toast(`+${e.value} 猫币`);
+}
+function confirmMinus(e){
+  pending=e;$("#confirmReason").textContent="原因："+e.name;
+  $("#confirmValue").textContent=e.value+" 🪙";$("#confirm").classList.add("show");
+}
+function doMinus(){
+  if(!pending)return;
+  state.balance+=pending.value;state.spent+=Math.abs(pending.value);
+  state.history.push({...pending,time:Date.now()});
+  $("#bubble").textContent=`${pending.emoji} ${pending.name}，小橘炸毛挥爪了！`;
+  setMode("attack");render();toast(`${pending.value} 猫币`);
+  $("#confirm").classList.remove("show");pending=null;
+}
+
+rewards.forEach(e=>{
+  const b=document.createElement("button");b.className="cardbtn";
+  b.innerHTML=`${e.emoji}<b>${e.name}</b><span>+${e.value} 猫币</span>`;
+  b.onclick=()=>addCoins(e);$("#rewards").appendChild(b);
+});
+reasons.forEach(e=>{
+  const b=document.createElement("button");b.className="cardbtn neg";
+  b.innerHTML=`${e.emoji}<b>${e.name}</b><span>${e.value} 猫币</span>`;
+  b.onclick=()=>confirmMinus(e);$("#reasons").appendChild(b);
+});
+
+$("#addBtn").onclick=()=>{$("#rewardPanel").classList.remove("hidden");$("#reasonPanel").classList.add("hidden")};
+$("#subBtn").onclick=()=>{$("#reasonPanel").classList.remove("hidden");$("#rewardPanel").classList.add("hidden")};
+$("#cancel").onclick=()=>{pending=null;$("#confirm").classList.remove("show")};
+$("#ok").onclick=doMinus;
+$("#confirm").onclick=e=>{if(e.target===$("#confirm")){pending=null;$("#confirm").classList.remove("show")}};
+render();
+</script>
+</body>
+</html>
