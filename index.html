@@ -79,6 +79,7 @@ body{
   border:1px solid var(--line);background:#fffaf5;border-radius:18px;
   padding:13px;text-align:left
 }
+.cardbtn:disabled,.btn:disabled{opacity:.5;cursor:wait}
 .cardbtn b{display:block;margin-top:4px;font-size:14px}
 .cardbtn span{display:block;margin-top:3px;font-size:12px;color:#e98516;font-weight:800}
 .cardbtn.neg span{color:#d95c51}
@@ -155,7 +156,7 @@ body{
     <div id="history"></div>
   </section>
 
-  <div class="note">点一下小橘，它会回应你。不同猫币操作会切换对应表情。</div>
+  <div class="note" id="syncStatus">正在连接云端咪币……</div>
 </div>
 
 <div class="overlay" id="confirm">
@@ -173,19 +174,21 @@ body{
 
 <script>
 const rewards=[
-  {emoji:"😸",name:"今天很开心",value:1},
-  {emoji:"🌟",name:"表现超棒",value:2},
-  {emoji:"🫶",name:"贴心时刻",value:5},
-  {emoji:"🎉",name:"特别开心",value:10}
+  {id:"reward-happy",emoji:"😸",name:"今天很开心",value:1},
+  {id:"reward-great",emoji:"🌟",name:"表现超棒",value:2},
+  {id:"reward-kind",emoji:"🫶",name:"贴心时刻",value:5},
+  {id:"reward-special",emoji:"🎉",name:"特别开心",value:10}
 ];
 const reasons=[
-  {emoji:"😿",name:"惹猫猫生气",value:-5},
-  {emoji:"😾",name:"说话不算数",value:-5},
-  {emoji:"🗑️",name:"乱丢东西",value:-3},
-  {emoji:"🙀",name:"不乖不听话",value:-3}
+  {id:"deduct-angry",emoji:"😿",name:"惹猫猫生气",value:-5},
+  {id:"deduct-promise",emoji:"😾",name:"说话不算数",value:-5},
+  {id:"deduct-mess",emoji:"🗑️",name:"乱丢东西",value:-3},
+  {id:"deduct-naughty",emoji:"🙀",name:"不乖不听话",value:-3}
 ];
+const API_URL="https://mibi-cloud-api.pages.dev";
 let state={balance:128,earned:146,spent:18,history:[]};
 let pending=null;
+let busy=false;
 const $=s=>document.querySelector(s);
 
 function toast(t){
@@ -203,6 +206,36 @@ function render(){
       <div><div class="name">${e.name}</div><div class="time">${new Date(e.time).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}</div></div>
       <div class="val ${e.value>0?"plus":"minus"}">${e.value>0?"+":""}${e.value}</div>
     </div>`).join(""):'<div style="color:#9a8c81;font-size:13px;padding:8px 0">还没有记录</div>';
+}
+
+function setBusy(value){
+  busy=value;
+  document.querySelectorAll(".cardbtn,.btn,#ok").forEach(button=>button.disabled=value);
+}
+function applyCloudState(data){
+  state={
+    balance:Number(data.balance),earned:Number(data.earned),spent:Number(data.spent),
+    history:Array.isArray(data.history)?data.history:[]
+  };
+  render();
+}
+async function callApi(path,options={}){
+  const response=await fetch(API_URL+path,{
+    ...options,
+    headers:{"Content-Type":"application/json",...(options.headers||{})}
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||"云端服务暂时不可用");
+  return data;
+}
+async function syncState(){
+  setBusy(true);$("#syncStatus").textContent="正在同步云端咪币……";
+  try{
+    applyCloudState(await callApi("/api/state"));
+    $("#syncStatus").textContent="已连接云端 · 所有人共享同一份咪币";
+  }catch(error){
+    $("#syncStatus").textContent="云端连接失败，请稍后刷新";toast(error.message);
+  }finally{setBusy(false)}
 }
 
 /* ---------- IMAGE-BASED ORANGE CAT ---------- */
@@ -235,24 +268,30 @@ $("#catStage").addEventListener("click",()=>{
   setMode("pet");
 });
 
-function addCoins(e){
-  state.balance+=e.value;state.earned+=e.value;state.history.push({...e,time:Date.now()});
+async function addCoins(e){
+  if(busy)return;
   const small=e.value<=2;
   const caption=small?"咪想要，咪得到":"塞牙缝都不够";
   $("#bubble").textContent=`${e.emoji} ${e.name}，奖励 ${e.value} 猫币！`;
-  setMode(small?"rewardSmall":"rewardBig",caption);render();toast(`+${e.value} 猫币`);
+  setMode(small?"rewardSmall":"rewardBig",caption);setBusy(true);
+  try{
+    applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:e.id})}));
+    toast(`+${e.value} 猫币`);
+  }catch(error){toast(error.message)}finally{setBusy(false)}
 }
 function confirmMinus(e){
   pending=e;$("#confirmReason").textContent="原因："+e.name;
   $("#confirmValue").textContent=e.value+" 🪙";$("#confirm").classList.add("show");
 }
-function doMinus(){
-  if(!pending)return;
-  state.balance+=pending.value;state.spent+=Math.abs(pending.value);
-  state.history.push({...pending,time:Date.now()});
-  $("#bubble").textContent=`${pending.emoji} ${pending.name}，小橘炸毛挥爪了！`;
-  setMode("attack");render();toast(`${pending.value} 猫币`);
-  $("#confirm").classList.remove("show");pending=null;
+async function doMinus(){
+  if(!pending||busy)return;
+  const action=pending;pending=null;
+  $("#bubble").textContent=`${action.emoji} ${action.name}，小橘炸毛挥爪了！`;
+  setMode("attack");$("#confirm").classList.remove("show");setBusy(true);
+  try{
+    applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:action.id})}));
+    toast(`${action.value} 猫币`);
+  }catch(error){toast(error.message)}finally{setBusy(false)}
 }
 
 rewards.forEach(e=>{
@@ -271,7 +310,7 @@ $("#subBtn").onclick=()=>{$("#reasonPanel").classList.remove("hidden");$("#rewar
 $("#cancel").onclick=()=>{pending=null;$("#confirm").classList.remove("show")};
 $("#ok").onclick=doMinus;
 $("#confirm").onclick=e=>{if(e.target===$("#confirm")){pending=null;$("#confirm").classList.remove("show")}};
-render();
+render();syncState();
 </script>
 </body>
 </html>
