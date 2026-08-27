@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>猫币 · 小橘</title>
+<title>猫币 · 呆瓜咪</title>
 <style>
 :root{
   --bg:#fff8ef;--card:#fff;--text:#342820;--muted:#9a8c81;
@@ -155,15 +155,15 @@ body{
 <div class="app">
   <div class="header">
     <div class="title">🐾 猫币</div>
-    <div style="font-size:12px;color:#9a8c81">小橘陪你记录</div>
+    <div style="font-size:12px;color:#9a8c81">呆瓜咪陪你记录</div>
   </div>
 
   <section class="hero">
-    <div class="bubble" id="bubble">摸摸小橘，今天也要开心攒猫币</div>
-    <button class="catStage" id="catStage" aria-label="摸摸小橘">
-      <img class="catImage" id="catImage" src="./assets/cat-idle.png" alt="一只成熟的橘猫" draggable="false">
+    <div class="bubble" id="bubble">摸摸呆瓜咪，今天也要开心攒猫币</div>
+    <button class="catStage" id="catStage" aria-label="摸摸呆瓜咪">
+      <img class="catImage" id="catImage" src="./assets/cat-idle.png" alt="名叫呆瓜咪的成熟橘猫" draggable="false">
       <span class="catCaption" id="catCaption"></span>
-      <span class="petHint">👆 点我，摸摸小橘</span>
+      <span class="petHint">👆 点我，摸摸呆瓜咪</span>
     </button>
     <div class="balanceCard">
       <div class="label">当前猫币</div>
@@ -209,8 +209,8 @@ body{
 </div>
 <div class="overlay" id="petConfirm">
   <div class="sheet">
-    <h2>😽 小橘被摸开心了</h2>
-    <p id="petMessage">呼噜呼噜……要奖励小橘 1 咪币吗？</p>
+    <h2>😽 呆瓜咪被摸开心了</h2>
+    <p id="petMessage">呼噜呼噜……要奖励呆瓜咪 1 咪币吗？</p>
     <div class="confirmValue" style="color:#e98716">+1 🪙</div>
     <div class="confirmActions">
       <button class="cancel" id="petCancel">这次不加</button>
@@ -325,11 +325,11 @@ function setMode(mode,caption=""){
   else if(mode!=="idle")catResetTimer=setTimeout(()=>setMode("idle"),mode==="sad"?1500:1350);
 }
 const petReplies=[
-  "小橘眯起眼睛：这里摸得刚刚好。",
+  "呆瓜咪眯起眼睛：这里摸得刚刚好。",
   "呼噜呼噜……耳朵后面也要摸到。",
-  "小橘把脑袋凑过来：再摸两下嘛。",
-  "尾巴轻轻晃了晃，小橘看起来很满意。",
-  "小橘用脑袋蹭了蹭你：手法不错。"
+  "呆瓜咪把脑袋凑过来：再摸两下嘛。",
+  "尾巴轻轻晃了晃，呆瓜咪看起来很满意。",
+  "呆瓜咪用脑袋蹭了蹭你：手法不错。"
 ];
 $("#catStage").addEventListener("click",()=>{
   if(busy||$("#petConfirm").classList.contains("show"))return;
@@ -338,7 +338,7 @@ $("#catStage").addEventListener("click",()=>{
   setMode("pet");
   clearTimeout(petPromptTimer);
   petPromptTimer=setTimeout(()=>{
-    $("#petMessage").textContent=reply+" 要奖励小橘 1 咪币吗？";
+    $("#petMessage").textContent=reply+" 要奖励呆瓜咪 1 咪币吗？";
     $("#petConfirm").classList.add("show");
   },650);
 });
@@ -361,7 +361,7 @@ function confirmMinus(e){
 async function doMinus(){
   if(!pending||busy)return;
   const action=pending;pending=null;
-  $("#bubble").textContent=`${action.emoji} ${action.name}，小橘炸毛挥爪了！`;
+  $("#bubble").textContent=`${action.emoji} ${action.name}，呆瓜咪炸毛挥爪了！`;
   setMode("attack");$("#confirm").classList.remove("show");setBusy(true);
   try{
     applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:action.id})}));
