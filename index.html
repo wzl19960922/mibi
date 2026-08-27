@@ -54,11 +54,39 @@ body{
   text-shadow:0 1px 2px rgba(0,0,0,.25);box-shadow:0 5px 15px rgba(70,45,28,.18)
 }
 .catCaption.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.catCaption.rewardSmall{
+  bottom:22px;padding:9px 17px;font-size:22px;letter-spacing:1px;
+  background:linear-gradient(135deg,#ff8a00,#ffb21c);color:#fff9df;
+  box-shadow:0 8px 24px rgba(255,138,0,.38);
+  animation:rewardWords 1.25s cubic-bezier(.18,.85,.24,1)
+}
+.catCaption.rewardBig{
+  bottom:22px;padding:9px 17px;font-size:20px;background:#4a3730;
+  animation:bigWords 1.25s cubic-bezier(.18,.85,.24,1)
+}
+.petHint{
+  position:absolute;z-index:4;right:13px;bottom:13px;padding:7px 10px;border-radius:999px;
+  background:rgba(255,255,255,.9);color:#8a6248;font-size:11px;font-weight:800;
+  box-shadow:0 5px 15px rgba(70,45,28,.1);pointer-events:none
+}
 @keyframes catHappy{0%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(-18px) rotate(-2deg)}}
 @keyframes catSad{0%,100%{transform:translateY(0)}45%{transform:translateY(10px) scale(.98)}}
 @keyframes catPet{0%,100%{transform:rotate(0) scale(1)}45%{transform:rotate(-3deg) scale(1.025)}}
 @keyframes catGrin{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-12px) scale(1.035)}}
 @keyframes catAttack{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-12px) rotate(-2deg) scale(1.06)}55%{transform:translateX(15px) rotate(3deg) scale(1.08)}75%{transform:translateX(-6px) rotate(-1deg) scale(1.04)}}
+@keyframes rewardWords{
+  0%{opacity:0;transform:translateX(-50%) translateY(24px) scale(.45) rotate(-7deg)}
+  34%{opacity:1;transform:translateX(-50%) translateY(-8px) scale(1.18) rotate(3deg)}
+  52%{transform:translateX(-50%) translateY(0) scale(.96) rotate(-2deg)}
+  70%{transform:translateX(-50%) translateY(-3px) scale(1.06) rotate(1deg)}
+  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1) rotate(0)}
+}
+@keyframes bigWords{
+  0%{opacity:0;transform:translateX(-50%) translateY(18px) scale(.7)}
+  38%{opacity:1;transform:translateX(-50%) translateY(-5px) scale(1.1)}
+  58%{transform:translateX(-50%) translateY(1px) scale(.98)}
+  100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
 .balanceCard{text-align:center;padding:12px 18px 18px}
 .label{font-size:13px;color:var(--muted)}
 .balance{font-size:50px;font-weight:900;letter-spacing:-2px}
@@ -135,6 +163,7 @@ body{
     <button class="catStage" id="catStage" aria-label="摸摸小橘">
       <img class="catImage" id="catImage" src="./assets/cat-idle.png" alt="一只成熟的橘猫" draggable="false">
       <span class="catCaption" id="catCaption"></span>
+      <span class="petHint">👆 点我，摸摸小橘</span>
     </button>
     <div class="balanceCard">
       <div class="label">当前猫币</div>
@@ -178,6 +207,17 @@ body{
     </div>
   </div>
 </div>
+<div class="overlay" id="petConfirm">
+  <div class="sheet">
+    <h2>😽 小橘被摸开心了</h2>
+    <p id="petMessage">呼噜呼噜……要奖励小橘 1 咪币吗？</p>
+    <div class="confirmValue" style="color:#e98716">+1 🪙</div>
+    <div class="confirmActions">
+      <button class="cancel" id="petCancel">这次不加</button>
+      <button class="food" id="petReward">奖励 +1</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="withdrawConfirm">
   <div class="sheet">
     <h2>🥫 换猫粮（提现）</h2>
@@ -208,6 +248,7 @@ const API_URL="https://mibi-cloud-api.pages.dev";
 let state={balance:8,earned:8,spent:0,history:[]};
 let pending=null;
 let busy=false;
+let petPromptTimer=null;
 const $=s=>document.querySelector(s);
 
 function toast(t){
@@ -229,7 +270,7 @@ function render(){
 
 function setBusy(value){
   busy=value;
-  document.querySelectorAll(".cardbtn,.btn,#ok,#withdrawOk").forEach(button=>button.disabled=value);
+  document.querySelectorAll(".cardbtn,.btn,#ok,#withdrawOk,#petReward").forEach(button=>button.disabled=value);
 }
 function applyCloudState(data){
   state={
@@ -278,13 +319,28 @@ function setMode(mode,caption=""){
   catImage.src=catSources[visual];
   catImage.classList.add(mode==="pet"?"pet":visual);
   catCaption.textContent=caption;
-  catCaption.classList.toggle("show",Boolean(caption));
+  catCaption.className="catCaption";
+  if(caption)catCaption.classList.add("show",mode);
   if(mode==="attack")catResetTimer=setTimeout(()=>setMode("sad"),850);
   else if(mode!=="idle")catResetTimer=setTimeout(()=>setMode("idle"),mode==="sad"?1500:1350);
 }
+const petReplies=[
+  "小橘眯起眼睛：这里摸得刚刚好。",
+  "呼噜呼噜……耳朵后面也要摸到。",
+  "小橘把脑袋凑过来：再摸两下嘛。",
+  "尾巴轻轻晃了晃，小橘看起来很满意。",
+  "小橘用脑袋蹭了蹭你：手法不错。"
+];
 $("#catStage").addEventListener("click",()=>{
-  $("#bubble").textContent="小橘抬起爪子，算是回应你了。";
+  if(busy||$("#petConfirm").classList.contains("show"))return;
+  const reply=petReplies[Math.floor(Math.random()*petReplies.length)];
+  $("#bubble").textContent=reply;
   setMode("pet");
+  clearTimeout(petPromptTimer);
+  petPromptTimer=setTimeout(()=>{
+    $("#petMessage").textContent=reply+" 要奖励小橘 1 咪币吗？";
+    $("#petConfirm").classList.add("show");
+  },650);
 });
 
 async function addCoins(e){
@@ -348,6 +404,12 @@ reasons.forEach(e=>{
 $("#addBtn").onclick=()=>{$("#rewardPanel").classList.remove("hidden");$("#reasonPanel").classList.add("hidden")};
 $("#subBtn").onclick=()=>{$("#reasonPanel").classList.remove("hidden");$("#rewardPanel").classList.add("hidden")};
 $("#withdrawBtn").onclick=openWithdraw;
+$("#petCancel").onclick=()=>$("#petConfirm").classList.remove("show");
+$("#petReward").onclick=()=>{
+  $("#petConfirm").classList.remove("show");
+  addCoins(rewards[0]);
+};
+$("#petConfirm").onclick=e=>{if(e.target===$("#petConfirm"))$("#petConfirm").classList.remove("show")};
 $("#cancel").onclick=()=>{pending=null;$("#confirm").classList.remove("show")};
 $("#ok").onclick=doMinus;
 $("#confirm").onclick=e=>{if(e.target===$("#confirm")){pending=null;$("#confirm").classList.remove("show")}};
