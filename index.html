@@ -69,6 +69,7 @@ body{
 }
 .add{background:linear-gradient(135deg,#ffad27,#ff9418)}
 .sub{background:linear-gradient(135deg,#ff7667,#ff5b49)}
+.withdraw{grid-column:1/-1;background:linear-gradient(135deg,#9a7155,#74503a)}
 .panel{
   margin-top:16px;background:#fff;border-radius:24px;padding:17px;
   box-shadow:0 10px 28px rgba(89,60,38,.06)
@@ -107,6 +108,12 @@ body{
 .confirmActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .confirmActions button{padding:14px;border:0;border-radius:16px;font-weight:850}
 .cancel{background:#f4f0ec;color:#62554c}.danger{background:#ff6755;color:#fff}
+.withdrawInput{
+  width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:16px;
+  font:inherit;font-size:18px;font-weight:800;outline:none
+}
+.withdrawInput:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,159,28,.12)}
+.food{background:#8a6248;color:#fff}
 .toast{
   position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(18px);
   background:#372d27;color:white;padding:10px 15px;border-radius:999px;
@@ -131,14 +138,15 @@ body{
     </button>
     <div class="balanceCard">
       <div class="label">当前猫币</div>
-      <div><span class="balance" id="balance">128</span> 🪙</div>
-      <div class="stats">总获得：<span id="earned">146</span>　总消耗：<span id="spent">18</span></div>
+      <div><span class="balance" id="balance">8</span> 🪙</div>
+      <div class="stats">总获得：<span id="earned">8</span>　总消耗：<span id="spent">0</span></div>
     </div>
   </section>
 
   <div class="actions">
     <button class="btn add" id="addBtn">🪙 给猫币</button>
     <button class="btn sub" id="subBtn">😾 扣猫币</button>
+    <button class="btn withdraw" id="withdrawBtn">🥫 换猫粮（提现）</button>
   </div>
 
   <section class="panel" id="rewardPanel">
@@ -170,6 +178,17 @@ body{
     </div>
   </div>
 </div>
+<div class="overlay" id="withdrawConfirm">
+  <div class="sheet">
+    <h2>🥫 换猫粮（提现）</h2>
+    <p>输入要兑换的咪币数量，最多可换 <span id="withdrawMax">8</span> 个。</p>
+    <input class="withdrawInput" id="withdrawAmount" type="number" min="1" step="1" inputmode="numeric" placeholder="输入咪币数量">
+    <div class="confirmActions" style="margin-top:14px">
+      <button class="cancel" id="withdrawCancel">先不换</button>
+      <button class="food" id="withdrawOk">确认提现</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -186,7 +205,7 @@ const reasons=[
   {id:"deduct-naughty",emoji:"🙀",name:"不乖不听话",value:-3}
 ];
 const API_URL="https://mibi-cloud-api.pages.dev";
-let state={balance:128,earned:146,spent:18,history:[]};
+let state={balance:8,earned:8,spent:0,history:[]};
 let pending=null;
 let busy=false;
 const $=s=>document.querySelector(s);
@@ -210,7 +229,7 @@ function render(){
 
 function setBusy(value){
   busy=value;
-  document.querySelectorAll(".cardbtn,.btn,#ok").forEach(button=>button.disabled=value);
+  document.querySelectorAll(".cardbtn,.btn,#ok,#withdrawOk").forEach(button=>button.disabled=value);
 }
 function applyCloudState(data){
   state={
@@ -293,6 +312,27 @@ async function doMinus(){
     toast(`${action.value} 猫币`);
   }catch(error){toast(error.message)}finally{setBusy(false)}
 }
+function openWithdraw(){
+  if(busy)return;
+  $("#withdrawMax").textContent=state.balance;
+  $("#withdrawAmount").value="";
+  $("#withdrawAmount").max=Math.max(state.balance,0);
+  $("#withdrawConfirm").classList.add("show");
+  setTimeout(()=>$("#withdrawAmount").focus(),80);
+}
+async function doWithdraw(){
+  if(busy)return;
+  const amount=Number($("#withdrawAmount").value);
+  if(!Number.isInteger(amount)||amount<1){toast("请输入正确的咪币数量");return}
+  if(amount>state.balance){toast("咪币余额不够换猫粮");return}
+  $("#withdrawConfirm").classList.remove("show");setBusy(true);
+  $("#bubble").textContent=`🥫 用 ${amount} 咪币换到猫粮啦！`;
+  setMode("happy","开罐！");
+  try{
+    applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:"withdraw-food",amount})}));
+    toast(`已提现 ${amount} 咪币`);
+  }catch(error){toast(error.message)}finally{setBusy(false)}
+}
 
 rewards.forEach(e=>{
   const b=document.createElement("button");b.className="cardbtn";
@@ -307,9 +347,14 @@ reasons.forEach(e=>{
 
 $("#addBtn").onclick=()=>{$("#rewardPanel").classList.remove("hidden");$("#reasonPanel").classList.add("hidden")};
 $("#subBtn").onclick=()=>{$("#reasonPanel").classList.remove("hidden");$("#rewardPanel").classList.add("hidden")};
+$("#withdrawBtn").onclick=openWithdraw;
 $("#cancel").onclick=()=>{pending=null;$("#confirm").classList.remove("show")};
 $("#ok").onclick=doMinus;
 $("#confirm").onclick=e=>{if(e.target===$("#confirm")){pending=null;$("#confirm").classList.remove("show")}};
+$("#withdrawCancel").onclick=()=>$("#withdrawConfirm").classList.remove("show");
+$("#withdrawOk").onclick=doWithdraw;
+$("#withdrawAmount").addEventListener("keydown",e=>{if(e.key==="Enter")doWithdraw()});
+$("#withdrawConfirm").onclick=e=>{if(e.target===$("#withdrawConfirm"))$("#withdrawConfirm").classList.remove("show")};
 render();syncState();
 </script>
 </body>
