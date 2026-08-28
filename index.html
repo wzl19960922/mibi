@@ -367,6 +367,15 @@ async function addCoins(e){
     toast(`+${e.value} 猫币`);
   }catch(error){toast(error.message)}finally{setBusy(false)}
 }
+async function addGiftCoin(){
+  if(busy)return;
+  setMode("rewardSmall","大帅米最帅了！");setBusy(true);
+  try{
+    applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:"reward-happy"})}));
+    $("#bubble").textContent="🎉 投喂成功，大帅米最帅了！";
+    toast("+1 咪币 · 大帅米最帅了！");
+  }catch(error){toast(error.message)}finally{setBusy(false)}
+}
 function confirmMinus(e){
   pending=e;$("#confirmReason").textContent="原因："+e.name;
   $("#confirmValue").textContent=e.value+" 🪙";$("#confirm").classList.add("show");
@@ -468,7 +477,7 @@ $("#shareBtn").onclick=shareGift;
 $("#giftCancel").onclick=closeGiftPrompt;
 $("#giftReward").onclick=()=>{
   closeGiftPrompt();
-  addCoins(rewards[0]);
+  addGiftCoin();
 };
 $("#giftConfirm").onclick=e=>{if(e.target===$("#giftConfirm"))closeGiftPrompt()};
 $("#petCancel").onclick=()=>$("#petConfirm").classList.remove("show");
