@@ -177,7 +177,7 @@ body{
     <button class="btn add" id="addBtn">🪙 给猫币</button>
     <button class="btn sub" id="subBtn">😾 扣猫币</button>
     <button class="btn withdraw" id="withdrawBtn">🥫 换猫粮（提现）</button>
-    <button class="btn share" id="shareBtn">🔗 分享链接，请别人送 +1</button>
+    <button class="btn share" id="shareBtn">🐾 分享呆瓜咪的求投喂链接</button>
   </div>
 
   <section class="panel" id="rewardPanel">
@@ -212,7 +212,7 @@ body{
 <div class="overlay" id="giftConfirm">
   <div class="sheet">
     <h2>🎁 来给呆瓜咪送咪币</h2>
-    <p>朋友邀请你来摸摸呆瓜咪，只需点一下就能送出 1 咪币。</p>
+    <p>呆瓜咪正在努力攒猫粮。朋友请你来送一枚咪币，点一下就好，不用登录。</p>
     <div class="confirmValue" style="color:#e98716">+1 🪙</div>
     <div class="confirmActions">
       <button class="cancel" id="giftCancel">下次再送</button>
@@ -407,16 +407,18 @@ function giftUrl(){
   url.searchParams.set("gift","1");
   return url.toString();
 }
+const SHARE_TEXT="呆瓜咪正在努力攒猫粮 🐾\n点开帮它送 1 枚咪币吧，只要一下！";
 async function shareGift(){
   const url=giftUrl();
-  const data={title:"给呆瓜咪送咪币",text:"点一下，送呆瓜咪 1 咪币 🪙",url};
+  const data={title:"给呆瓜咪送一枚咪币",text:SHARE_TEXT,url};
+  const shareCopy=`${SHARE_TEXT}\n${url}`;
   try{
     if(navigator.share){await navigator.share(data);return}
-    await navigator.clipboard.writeText(url);
-    toast("送币链接已复制");
+    await navigator.clipboard.writeText(shareCopy);
+    toast("求投喂文案和链接已复制");
   }catch(error){
     if(error.name!=="AbortError"){
-      window.prompt("复制这个送币链接",url);
+      window.prompt("复制这段求投喂文案",shareCopy);
     }
   }
 }
