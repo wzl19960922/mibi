@@ -407,11 +407,28 @@ function giftUrl(){
   url.searchParams.set("gift","1");
   return url.toString();
 }
-const SHARE_TEXT="呆瓜咪正在努力攒猫粮 🐾\n点开帮它送 1 枚咪币吧，只要一下！";
+const SHARE_TEXTS=[
+  "呆瓜咪正在努力攒猫粮 🐾\n点开帮它送 1 枚咪币吧，只要一下！",
+  "今日份呆瓜咪求投喂已送达 🥫\n帮它点亮 1 枚咪币，好猫会记得你的。",
+  "呆瓜咪的猫粮碗发来一条空碗警告 🚨\n点一下，赞助它 1 枚咪币吧！",
+  "路过的好心人请留步 😼\n呆瓜咪离一口猫粮，只差你送的 1 枚咪币。",
+  "呆瓜咪说它没有求你，只是把链接放在这里 🐾\n点开送它 1 枚咪币就行。",
+  "一人一咪币，呆瓜咪吃饱饱 🥫\n点一下完成今日投喂！",
+  "检测到一只正在等猫粮的呆瓜咪 👀\n送它 1 枚咪币，立刻解除等待。",
+  "呆瓜咪向你发起了猫粮众筹 🪙\n不用登录，点一下送 1 枚咪币！"
+];
+let lastShareIndex=-1;
+function randomShareText(){
+  let index=Math.floor(Math.random()*SHARE_TEXTS.length);
+  if(index===lastShareIndex)index=(index+1)%SHARE_TEXTS.length;
+  lastShareIndex=index;
+  return SHARE_TEXTS[index];
+}
 async function shareGift(){
   const url=giftUrl();
-  const data={title:"给呆瓜咪送一枚咪币",text:SHARE_TEXT,url};
-  const shareCopy=`${SHARE_TEXT}\n${url}`;
+  const shareText=randomShareText();
+  const data={title:"给呆瓜咪送一枚咪币",text:shareText,url};
+  const shareCopy=`${shareText}\n${url}`;
   try{
     if(navigator.share){await navigator.share(data);return}
     await navigator.clipboard.writeText(shareCopy);
