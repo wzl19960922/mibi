@@ -498,6 +498,10 @@ $("#catStage").addEventListener("click",()=>{
 });
 
 let celebrationTimer=null;
+function returnToCat(){
+  $("#catStage").focus({preventScroll:true});
+  window.scrollTo({top:0,left:0,behavior:"instant"});
+}
 function showCoinCelebration(amount){
   const celebration=$("#giftCelebration");
   $(".app").classList.remove("screenScratch");
@@ -528,6 +532,7 @@ async function addCoins(e){
   setBusy(true);
   try{
     applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:e.id})}));
+    returnToCat();
     setMode(small?"rewardSmall":"rewardBig",caption);
     showCoinCelebration(e.value);
     toast(`+${e.value} 猫币`);
@@ -547,6 +552,7 @@ async function doMinus(){
   $("#confirm").classList.remove("show");setBusy(true);
   try{
     applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:action.id})}));
+    returnToCat();
     setMode("attack");
     showDeductCelebration(action.value);
     toast(`${action.value} 猫币`);
@@ -566,10 +572,11 @@ async function doWithdraw(){
   if(!Number.isInteger(amount)||amount<1){toast("请输入正确的咪币数量");return}
   if(amount>state.balance){toast("咪币余额不够换猫粮");return}
   $("#withdrawConfirm").classList.remove("show");setBusy(true);
-  $("#bubble").textContent=`🥫 用 ${amount} 咪币换到猫粮啦！`;
-  setMode("happy","开罐！");
   try{
     applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:"withdraw-food",amount})}));
+    returnToCat();
+    $("#bubble").textContent=`🥫 用 ${amount} 咪币换到猫粮啦！`;
+    setMode("happy","开罐！");
     toast(`已提现 ${amount} 咪币`);
   }catch(error){toast(error.message)}finally{setBusy(false)}
 }
@@ -660,8 +667,8 @@ if(DEMO_MODE){
   document.title="互动测试 · 呆瓜咪";
   $("#demoPanel").classList.remove("hidden");
   $("#shareBtn").textContent="🧪 分享测试链接（不送真实咪币）";
-  $("#demoAdd").onclick=()=>{setMode("rewardSmall","咪想要，咪得到");showCoinCelebration(1)};
-  $("#demoDeduct").onclick=()=>{setMode("attack");showDeductCelebration(-2)};
+  $("#demoAdd").onclick=()=>{returnToCat();setMode("rewardSmall","咪想要，咪得到");showCoinCelebration(1)};
+  $("#demoDeduct").onclick=()=>{returnToCat();setMode("attack");showDeductCelebration(-2)};
 }
 render();syncState();openGiftFromLink();scheduleIdle();
 </script>
