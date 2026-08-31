@@ -206,6 +206,14 @@ body{
 </head>
 <body>
 <div class="app">
+  <section class="panel hidden" id="demoPanel" style="margin:0 0 16px;border:2px dashed #e98716">
+    <h3>🧪 测试模式 · 不改变真实咪币</h3>
+    <p style="font-size:13px;color:#756151">可以反复试，所有操作只在当前页面模拟，刷新后恢复。</p>
+    <div class="grid">
+      <button class="cardbtn" id="demoAdd">✨ 试看加币大提示</button>
+      <button class="cardbtn neg" id="demoDeduct">🐾 试看猫爪大提示</button>
+    </div>
+  </section>
   <div class="header">
     <div class="title">🐾 猫币</div>
     <div style="font-size:12px;color:#9a8c81">呆瓜咪陪你记录</div>
@@ -334,6 +342,7 @@ const reasons=[
   {id:"deduct-naughty",emoji:"🙀",name:"不乖不听话",value:-3}
 ];
 const API_URL="https://mibi-cloud-api.pages.dev";
+const DEMO_MODE=new URLSearchParams(location.search).get("demo")==="1";
 let state={balance:8,earned:8,spent:0,history:[]};
 let pending=null;
 let busy=false;
@@ -369,6 +378,24 @@ function applyCloudState(data){
   render();
 }
 async function callApi(path,options={}){
+  if(DEMO_MODE){
+    if(path==="/api/state")return {...state,history:state.history.slice()};
+    if(path!=="/api/actions"||options.method!=="POST")throw new Error("不支持的测试操作");
+    const payload=JSON.parse(options.body);
+    let action=[...rewards,...reasons].find(item=>item.id===payload.actionId);
+    if(payload.actionId==="withdraw-food"){
+      const amount=Number(payload.amount);
+      if(!Number.isInteger(amount)||amount<1||amount>state.balance)throw new Error("测试余额不足或数量不正确");
+      action={id:"withdraw-food",emoji:"🥫",name:"换猫粮（测试）",value:-amount};
+    }
+    if(!action)throw new Error("不支持的测试操作");
+    return {
+      balance:state.balance+action.value,
+      earned:state.earned+Math.max(action.value,0),
+      spent:state.spent+Math.max(-action.value,0),
+      history:[...state.history,{...action,time:new Date().toISOString()}]
+    };
+  }
   const response=await fetch(API_URL+path,{
     ...options,
     headers:{"Content-Type":"application/json",...(options.headers||{})}
@@ -381,7 +408,7 @@ async function syncState(){
   setBusy(true);$("#syncStatus").textContent="正在同步云端咪币……";
   try{
     applyCloudState(await callApi("/api/state"));
-    $("#syncStatus").textContent="已连接云端 · 所有人共享同一份咪币";
+    $("#syncStatus").textContent=DEMO_MODE?"🧪 测试模式 · 未连接云端，真实余额不会改变":"已连接云端 · 所有人共享同一份咪币";
   }catch(error){
     $("#syncStatus").textContent="云端连接失败，请稍后刷新";toast(error.message);
   }finally{setBusy(false)}
@@ -507,6 +534,7 @@ async function doWithdraw(){
 function giftUrl(){
   const url=new URL(location.origin+location.pathname);
   url.searchParams.set("gift","1");
+  if(DEMO_MODE)url.searchParams.set("demo","1");
   return url.toString();
 }
 const SHARE_TEXTS=[
@@ -528,7 +556,7 @@ function randomShareText(){
 }
 async function shareGift(){
   const url=giftUrl();
-  const shareText=randomShareText();
+  const shareText=DEMO_MODE?"🧪 呆瓜咪互动测试：仅预览，不会增加真实咪币。":randomShareText();
   const data={title:"给呆瓜咪送一枚咪币",text:shareText,url};
   const shareCopy=`${shareText}\n${url}`;
   try{
@@ -586,6 +614,13 @@ $("#withdrawCancel").onclick=()=>$("#withdrawConfirm").classList.remove("show");
 $("#withdrawOk").onclick=doWithdraw;
 $("#withdrawAmount").addEventListener("keydown",e=>{if(e.key==="Enter")doWithdraw()});
 $("#withdrawConfirm").onclick=e=>{if(e.target===$("#withdrawConfirm"))$("#withdrawConfirm").classList.remove("show")};
+if(DEMO_MODE){
+  document.title="互动测试 · 呆瓜咪";
+  $("#demoPanel").classList.remove("hidden");
+  $("#shareBtn").textContent="🧪 分享测试链接（不送真实咪币）";
+  $("#demoAdd").onclick=()=>{setMode("rewardSmall","咪想要，咪得到");showCoinCelebration(1)};
+  $("#demoDeduct").onclick=()=>{setMode("attack");showDeductCelebration(-3)};
+}
 render();syncState();openGiftFromLink();
 </script>
 </body>
