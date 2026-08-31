@@ -263,7 +263,7 @@ body{
   </section>
 
   <section class="panel hidden" id="reasonPanel">
-    <h3>为什么要扣猫币？</h3>
+    <h3>😾 分档扣除 · 1 / 2 / 5 / 10</h3>
     <div class="grid" id="reasons"></div>
   </section>
 
@@ -279,7 +279,7 @@ body{
   <div class="sheet">
     <h2>真的要扣猫币吗？</h2>
     <p id="confirmReason"></p>
-    <div class="confirmValue" id="confirmValue">-5 🪙</div>
+    <div class="confirmValue" id="confirmValue">-1 🪙</div>
     <div class="confirmActions">
       <button class="cancel" id="cancel">再想想</button>
       <button class="danger" id="ok">确认扣除</button>
@@ -357,10 +357,10 @@ const rewards=[
   {id:"reward-special",emoji:"🎉",name:"特别开心",value:10}
 ];
 const reasons=[
-  {id:"deduct-angry",emoji:"😿",name:"惹猫猫生气",value:-5},
-  {id:"deduct-promise",emoji:"😾",name:"说话不算数",value:-5},
-  {id:"deduct-mess",emoji:"🗑️",name:"乱丢东西",value:-3},
-  {id:"deduct-naughty",emoji:"🙀",name:"不乖不听话",value:-3}
+  {id:"deduct-mess-1",emoji:"🗑️",name:"乱丢东西",value:-1},
+  {id:"deduct-naughty-2",emoji:"🙀",name:"不乖不听话",value:-2},
+  {id:"deduct-angry-5",emoji:"😿",name:"惹猫猫生气",value:-5},
+  {id:"deduct-promise-10",emoji:"😾",name:"说话不算数",value:-10}
 ];
 const API_URL="https://mibi-cloud-api.pages.dev";
 const DEMO_MODE=new URLSearchParams(location.search).get("demo")==="1";
@@ -661,7 +661,7 @@ if(DEMO_MODE){
   $("#demoPanel").classList.remove("hidden");
   $("#shareBtn").textContent="🧪 分享测试链接（不送真实咪币）";
   $("#demoAdd").onclick=()=>{setMode("rewardSmall","咪想要，咪得到");showCoinCelebration(1)};
-  $("#demoDeduct").onclick=()=>{setMode("attack");showDeductCelebration(-3)};
+  $("#demoDeduct").onclick=()=>{setMode("attack");showDeductCelebration(-2)};
 }
 render();syncState();openGiftFromLink();scheduleIdle();
 </script>
