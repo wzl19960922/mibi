@@ -181,37 +181,28 @@ body{
 @keyframes celebrationSub{from{opacity:0;transform:translateY(18px) scale(.75)}to{opacity:1;transform:none}}
 @keyframes celebrationFade{0%,78%{opacity:1}100%{opacity:0}}
 .deductCelebration{
-  overflow:hidden;perspective:900px;
-  background:radial-gradient(circle,rgba(255,226,214,.9),rgba(168,39,26,.24) 46%,transparent 76%)
+  overflow:hidden;
+  background:radial-gradient(circle,rgba(255,242,223,.86),rgba(226,149,87,.13) 48%,transparent 76%)
 }
-.deductCelebration.show{animation:celebrationFade 2.85s ease both}
-.clawPaw{
-  position:absolute;left:50%;top:50%;width:min(72vw,420px);height:auto;z-index:3;
-  opacity:0;transform-origin:50% 50%;object-fit:contain;
-  filter:drop-shadow(0 18px 22px rgba(61,28,10,.3));will-change:transform,opacity
-}
-.deductCelebration.show .clawPaw{animation:pawReach 1.55s cubic-bezier(.3,.05,.6,1) both}
-@keyframes pawReach{
-  0%{opacity:0;transform:translate(-50%,-50%) translate(var(--paw-start-x,0px),var(--paw-start-y,0px)) rotateX(16deg) scale(.08)}
-  16%{opacity:1;transform:translate(-50%,-50%) translate(var(--paw-start-x,0px),var(--paw-start-y,0px)) rotateX(12deg) scale(.18)}
-  37%{opacity:1;transform:translate(-50%,-50%) rotateX(6deg) scale(.65)}
-  52%{opacity:1;transform:translate(-50%,-50%) rotateX(0deg) scale(1.38)}
-  62%{opacity:1;transform:translate(-50%,-48%) rotate(-4deg) scale(1.62)}
-  77%{opacity:.9;transform:translate(-56%,-22%) rotate(-9deg) scale(1.68)}
-  93%,100%{opacity:0;transform:translate(-62%,24%) rotate(-12deg) scale(1.8)}
-}
+.deductCelebration.show{animation:celebrationFade 2.15s ease both}
+.app.screenScratch{animation:screenShake .46s ease-out}
+@keyframes screenShake{0%,100%{transform:none}18%{transform:translate(-5px,2px)}38%{transform:translate(5px,-2px)}58%{transform:translate(-3px,1px)}78%{transform:translate(2px,0)}}
 .deductCelebrationBox{text-align:center;filter:drop-shadow(0 8px 18px rgba(88,16,10,.3))}
 .deductTitle{display:block;width:min(88vw,520px);height:auto;overflow:visible}
 .deductTitle text{font-family:inherit;font-weight:1000;font-size:88px;letter-spacing:3px;paint-order:stroke fill}
-.deductCelebration.show .deductTitle{animation:clawImpact .8s .9s ease-out both}
+.deductCelebration.show .deductTitle{animation:clawImpact .58s ease-out both}
+.deductCelebration.show .tearTop{animation:tearTop .7s .12s ease-out both}
+.deductCelebration.show .tearBottom{animation:tearBottom .7s .12s ease-out both}
+@keyframes tearTop{0%,100%{transform:none}28%{transform:translate(-12px,-3px)}53%{transform:translate(5px,-1px)}76%{transform:translate(-3px,0)}}
+@keyframes tearBottom{0%,100%{transform:none}28%{transform:translate(12px,3px)}53%{transform:translate(-5px,1px)}76%{transform:translate(3px,0)}}
 .clawStroke{fill:none;stroke:#fff6da;stroke-width:5;stroke-linecap:round;filter:drop-shadow(2px 2px 0 #a82b1c)}
-.deductCelebration.show .clawStroke{stroke-dasharray:1;stroke-dashoffset:1;animation:clawDraw .3s .93s ease-out forwards}
-.deductCelebration.show .clawStroke:nth-of-type(2){animation-delay:.99s}
-.deductCelebration.show .clawStroke:nth-of-type(3){animation-delay:1.05s}
-.deductCelebration.show .deductSub{animation:celebrationSub .3s 1.02s ease both}
+.deductCelebration.show .clawStroke{stroke-dasharray:1;stroke-dashoffset:1;animation:clawDraw .22s .15s ease-out forwards}
+.deductCelebration.show .clawStroke:nth-of-type(2){animation-delay:.21s}
+.deductCelebration.show .clawStroke:nth-of-type(3){animation-delay:.27s}
+.deductCelebration.show .deductSub{animation:celebrationSub .3s .25s ease both}
 .deductSub{display:inline-block;margin-top:16px;padding:10px 18px;border-radius:999px;background:#60251f;color:#fff1e8;font-size:18px;font-weight:900}
 @keyframes clawImpact{
-  0%{opacity:0;transform:scale(1.5) rotate(-9deg)}
+  0%{opacity:0;transform:scale(.94) rotate(-4deg)}
   24%{opacity:1;transform:translateX(-10px) scale(.96) rotate(3deg)}
   38%{transform:translateX(9px) rotate(-3deg)}
   52%{transform:translateX(-6px) rotate(2deg)}
@@ -224,7 +215,7 @@ body{
   .giftCelebration.show .giftCelebrationTitle,.giftCelebration.show .giftCelebrationSub,
   .deductCelebration.show .deductTitle{animation:none}
   .deductCelebration.show .clawStroke{animation:none;stroke-dashoffset:0}
-  .deductCelebration.show .clawPaw{animation:none;opacity:0}
+  .app.screenScratch,.deductCelebration.show .tearTop,.deductCelebration.show .tearBottom{animation:none}
   .deductCelebration.show .deductSub{animation:none}
 }
 .note{font-size:11px;color:var(--muted);text-align:center;margin-top:10px}
@@ -337,16 +328,19 @@ body{
 </div>
 
 <div class="giftCelebration deductCelebration" id="deductCelebration" aria-live="polite">
-  <img class="clawPaw" src="./assets/cat-paw-front.png" alt="" aria-hidden="true" draggable="false" decoding="async">
   <div class="deductCelebrationBox">
     <svg class="deductTitle" viewBox="0 0 440 140" role="img" aria-label="老咪找屎">
       <defs>
+        <text id="deductWords" x="220" y="105" text-anchor="middle" fill="#9b4029" stroke="#fff5dd" stroke-width="4">老咪找屎</text>
+        <clipPath id="tearUpper"><path d="M0 0 H440 V66 L392 73 L346 64 L294 74 L244 64 L195 73 L146 63 L95 73 L47 64 L0 72 Z"/></clipPath>
+        <clipPath id="tearLower"><path d="M0 72 L47 64 L95 73 L146 63 L195 73 L244 64 L294 74 L346 64 L392 73 L440 66 V140 H0 Z"/></clipPath>
         <mask id="clawCuts" maskUnits="userSpaceOnUse" x="0" y="-20" width="440" height="200">
           <rect x="0" y="-20" width="440" height="200" fill="white"/>
           <path d="M170 5 L112 138 M250 0 L188 140 M329 3 L268 139" fill="none" stroke="black" stroke-width="7"/>
         </mask>
       </defs>
-      <text x="220" y="105" text-anchor="middle" fill="#a7261e" stroke="#fff5dd" stroke-width="4" mask="url(#clawCuts)">老咪找屎</text>
+      <g class="tearTop"><g clip-path="url(#tearUpper)" mask="url(#clawCuts)"><use href="#deductWords"/></g></g>
+      <g class="tearBottom"><g clip-path="url(#tearLower)" mask="url(#clawCuts)"><use href="#deductWords"/></g></g>
       <path class="clawStroke" pathLength="1" d="M170 5 Q140 65 112 138"/>
       <path class="clawStroke" pathLength="1" d="M250 0 Q219 66 188 140"/>
       <path class="clawStroke" pathLength="1" d="M329 3 Q298 72 268 139"/>
@@ -506,6 +500,7 @@ $("#catStage").addEventListener("click",()=>{
 let celebrationTimer=null;
 function showCoinCelebration(amount){
   const celebration=$("#giftCelebration");
+  $(".app").classList.remove("screenScratch");
   $("#deductCelebration").classList.remove("show");
   $(".giftCelebrationSub").textContent=`🎉 投喂成功 · +${amount} 咪币`;
   clearTimeout(celebrationTimer);
@@ -515,17 +510,15 @@ function showCoinCelebration(amount){
 }
 function showDeductCelebration(amount){
   const celebration=$("#deductCelebration");
-  const catRect=$("#catStage").getBoundingClientRect();
-  const centerX=Math.max(32,Math.min(window.innerWidth-32,catRect.left+catRect.width*.54));
-  const centerY=Math.max(32,Math.min(window.innerHeight-32,catRect.top+catRect.height*.60));
-  celebration.style.setProperty("--paw-start-x",`${centerX-window.innerWidth/2}px`);
-  celebration.style.setProperty("--paw-start-y",`${centerY-window.innerHeight/2}px`);
+  const app=$(".app");
+  app.classList.remove("screenScratch");void app.offsetWidth;
+  app.classList.add("screenScratch");
   $("#giftCelebration").classList.remove("show");
   $("#deductSub").textContent=`😾 扣除 ${Math.abs(amount)} 咪币 · 呆瓜咪出爪了！`;
   clearTimeout(celebrationTimer);
   celebration.classList.remove("show");void celebration.offsetWidth;
   celebration.classList.add("show");
-  celebrationTimer=setTimeout(()=>celebration.classList.remove("show"),2900);
+  celebrationTimer=setTimeout(()=>{celebration.classList.remove("show");app.classList.remove("screenScratch")},2200);
 }
 async function addCoins(e){
   if(busy)return;
