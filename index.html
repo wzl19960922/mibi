@@ -271,7 +271,7 @@ body{
 <div class="toast" id="toast"></div>
 <div class="giftCelebration" id="giftCelebration" aria-live="polite">
   <div class="giftCelebrationBox">
-    <div class="giftCelebrationTitle">大帅咪最帅了！</div>
+    <div class="giftCelebrationTitle">大帅米最帅了！</div>
     <div class="giftCelebrationSub">🎉 投喂成功 · +1 咪币</div>
   </div>
 </div>
@@ -388,28 +388,30 @@ $("#catStage").addEventListener("click",()=>{
   },650);
 });
 
+let celebrationTimer=null;
+function showCoinCelebration(amount){
+  const celebration=$("#giftCelebration");
+  $(".giftCelebrationSub").textContent=`🎉 投喂成功 · +${amount} 咪币`;
+  clearTimeout(celebrationTimer);
+  celebration.classList.remove("show");void celebration.offsetWidth;
+  celebration.classList.add("show");
+  celebrationTimer=setTimeout(()=>celebration.classList.remove("show"),2200);
+}
 async function addCoins(e){
   if(busy)return;
   const small=e.value<=2;
   const caption=small?"咪想要，咪得到":"塞牙缝都不够";
   $("#bubble").textContent=`${e.emoji} ${e.name}，奖励 ${e.value} 猫币！`;
-  setMode(small?"rewardSmall":"rewardBig",caption);setBusy(true);
+  setBusy(true);
   try{
     applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:e.id})}));
+    setMode(small?"rewardSmall":"rewardBig",caption);
+    showCoinCelebration(e.value);
     toast(`+${e.value} 猫币`);
   }catch(error){toast(error.message)}finally{setBusy(false)}
 }
 async function addGiftCoin(){
-  if(busy)return;
-  setMode("rewardSmall","咪想要，咪得到");setBusy(true);
-  try{
-    applyCloudState(await callApi("/api/actions",{method:"POST",body:JSON.stringify({actionId:"reward-happy"})}));
-    $("#bubble").textContent="🎉 投喂成功，大帅咪最帅了！";
-    const celebration=$("#giftCelebration");
-    celebration.classList.remove("show");void celebration.offsetWidth;
-    celebration.classList.add("show");
-    setTimeout(()=>celebration.classList.remove("show"),2200);
-  }catch(error){toast(error.message)}finally{setBusy(false)}
+  return addCoins(rewards[0]);
 }
 function confirmMinus(e){
   pending=e;$("#confirmReason").textContent="原因："+e.name;
